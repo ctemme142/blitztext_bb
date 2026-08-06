@@ -14,7 +14,7 @@ struct MainView: View {
                     case .idle:
                         idleView
                     case .recording:
-                        RecordingView(model: model)
+                        RecordingView(model: model, recorder: model.recorder)
                     case .processing(let text):
                         processingView(text)
                     case .finished:

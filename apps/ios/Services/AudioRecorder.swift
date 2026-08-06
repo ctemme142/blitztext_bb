@@ -54,12 +54,14 @@ final class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
         let newRecorder = try AVAudioRecorder(url: url, settings: settings)
         newRecorder.delegate = self
         newRecorder.isMeteringEnabled = true
+        currentFileURL = url
         guard newRecorder.record() else {
+            currentFileURL = nil
+            try? FileManager.default.removeItem(at: url)
             throw AudioRecorderError.couldNotStart
         }
 
         recorder = newRecorder
-        currentFileURL = url
         isRecording = true
         elapsed = 0
         audioLevel = 0
@@ -67,7 +69,6 @@ final class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
     }
 
     func stop() -> URL? {
-        guard isRecording else { return currentFileURL }
         stopTimer()
         elapsed = recorder?.currentTime ?? elapsed
         recorder?.stop()

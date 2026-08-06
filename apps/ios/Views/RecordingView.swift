@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RecordingView: View {
     @ObservedObject var model: AppModel
+    @ObservedObject var recorder: AudioRecorder
 
     var body: some View {
         VStack(spacing: 20) {
@@ -10,8 +11,8 @@ struct RecordingView: View {
                     .fill(.red.opacity(0.12))
                     .frame(width: 150, height: 150)
                 Circle()
-                    .fill(.red.opacity(0.2 + Double(model.recorder.audioLevel) * 0.35))
-                    .frame(width: 88 + CGFloat(model.recorder.audioLevel) * 28, height: 88 + CGFloat(model.recorder.audioLevel) * 28)
+                    .fill(.red.opacity(0.2 + Double(recorder.audioLevel) * 0.35))
+                    .frame(width: 88 + CGFloat(recorder.audioLevel) * 28, height: 88 + CGFloat(recorder.audioLevel) * 28)
                 Image(systemName: "waveform")
                     .font(.system(size: 42, weight: .semibold))
                     .foregroundStyle(.red)
@@ -19,7 +20,7 @@ struct RecordingView: View {
 
             Text("Aufnahme läuft")
                 .font(.title2.bold())
-            Text(formatDuration(model.recorder.elapsed))
+            Text(formatDuration(recorder.elapsed))
                 .font(.system(.title, design: .monospaced).weight(.semibold))
                 .foregroundStyle(.secondary)
             Text("Maximal 5 Minuten")
