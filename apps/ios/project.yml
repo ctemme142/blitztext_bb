@@ -30,7 +30,7 @@ targets:
           - Info.plist
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.blitztext.ios
+        PRODUCT_BUNDLE_IDENTIFIER: com.ctemme142.blitztext.ios
         PRODUCT_NAME: Blitztext
         TARGETED_DEVICE_FAMILY: "1"
         INFOPLIST_FILE: Resources/Info.plist
