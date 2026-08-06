@@ -25,6 +25,7 @@ final class AppModel: ObservableObject {
     let recorder = AudioRecorder()
     private var pendingAudioURL: URL?
     private var processingTask: Task<Void, Never>?
+    private var isStartingRecording = false
 
     private init() {
         let rawWorkflow = UserDefaults.standard.string(forKey: Self.lastWorkflowKey)
@@ -78,18 +79,23 @@ final class AppModel: ObservableObject {
     }
 
     func startRecording() {
-        guard isSetupComplete, !isBusy else { return }
+        guard isSetupComplete, !isBusy, !isStartingRecording else { return }
         resultText = ""
         rawText = ""
         showingOriginal = false
         pendingAudioURL = nil
-        state = .recording
-        statusText = "Aufnahme läuft ..."
+        isStartingRecording = true
+        state = .processing("Aufnahme wird gestartet ...")
+        statusText = "Aufnahme wird gestartet ..."
         Task { @MainActor [weak self] in
             guard let self else { return }
             do {
                 try await recorder.start()
+                isStartingRecording = false
+                state = .recording
+                statusText = "Aufnahme läuft ..."
             } catch {
+                isStartingRecording = false
                 state = .failed(errorMessage(for: error))
                 statusText = "Die Aufnahme konnte nicht gestartet werden."
             }
