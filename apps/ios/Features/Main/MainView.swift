@@ -5,25 +5,32 @@ struct MainView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    header
-                    workflowPicker
+            Group {
+                if case .recording = model.state {
+                    RecordingView(model: model, recorder: model.recorder)
+                        .padding(.horizontal, 20)
+                } else {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 18) {
+                            header
+                            workflowPicker
 
-                    switch model.state {
-                    case .idle:
-                        idleView
-                    case .recording:
-                        RecordingView(model: model, recorder: model.recorder)
-                    case .processing(let text):
-                        processingView(text)
-                    case .finished:
-                        resultView
-                    case .failed(let message):
-                        failureView(message)
+                            switch model.state {
+                            case .idle:
+                                idleView
+                            case .recording:
+                                EmptyView()
+                            case .processing(let text):
+                                processingView(text)
+                            case .finished:
+                                resultView
+                            case .failed(let message):
+                                failureView(message)
+                            }
+                        }
+                        .padding(20)
                     }
                 }
-                .padding(20)
             }
             .navigationTitle("Blitztext")
             .toolbar {

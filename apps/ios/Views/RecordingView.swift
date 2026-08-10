@@ -5,29 +5,29 @@ struct RecordingView: View {
     @ObservedObject var recorder: AudioRecorder
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 12) {
             ZStack {
                 Circle()
                     .fill(.red.opacity(0.12))
-                    .frame(width: 150, height: 150)
+                    .frame(width: 112, height: 112)
                 Circle()
                     .fill(.red.opacity(0.2 + Double(recorder.audioLevel) * 0.35))
-                    .frame(width: 88 + CGFloat(recorder.audioLevel) * 28, height: 88 + CGFloat(recorder.audioLevel) * 28)
+                    .frame(width: 68 + CGFloat(recorder.audioLevel) * 20, height: 68 + CGFloat(recorder.audioLevel) * 20)
                 Image(systemName: "waveform")
-                    .font(.system(size: 42, weight: .semibold))
+                    .font(.system(size: 32, weight: .semibold))
                     .foregroundStyle(.red)
             }
 
             Text("Aufnahme läuft")
-                .font(.title2.bold())
+                .font(.title3.bold())
             Text(formatDuration(recorder.elapsed))
-                .font(.system(.title, design: .monospaced).weight(.semibold))
+                .font(.system(.title2, design: .monospaced).weight(.semibold))
                 .foregroundStyle(.secondary)
             Text("Maximal 5 Minuten")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
 
-            VStack(spacing: 10) {
+            VStack(spacing: 8) {
                 Button {
                     model.finishRecording()
                 } label: {
@@ -45,7 +45,7 @@ struct RecordingView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
+        .padding(.vertical, 12)
     }
 
     private func formatDuration(_ duration: TimeInterval) -> String {

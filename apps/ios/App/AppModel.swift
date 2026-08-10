@@ -115,6 +115,7 @@ final class AppModel: ObservableObject {
             statusText = "Die Aufnahme wurde beendet. Sie können sie erneut verarbeiten."
             return
         }
+        statusText = "Aufnahme beendet. Transkription wird gestartet ..."
         processPendingAudio()
     }
 
