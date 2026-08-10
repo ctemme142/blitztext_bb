@@ -14,6 +14,7 @@ final class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
     private var recorder: AVAudioRecorder?
     private var timerTask: Task<Void, Never>?
     private var currentFileURL: URL?
+    private var recordingStartDate: Date?
     private var interruptionObserver: NSObjectProtocol?
 
     override init() {
@@ -54,15 +55,17 @@ final class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
         let newRecorder = try AVAudioRecorder(url: url, settings: settings)
         newRecorder.delegate = self
         newRecorder.isMeteringEnabled = true
+        recorder = newRecorder
         currentFileURL = url
         guard newRecorder.record() else {
+            recorder = nil
             currentFileURL = nil
             try? FileManager.default.removeItem(at: url)
             throw AudioRecorderError.couldNotStart
         }
 
-        recorder = newRecorder
         isRecording = true
+        recordingStartDate = Date()
         elapsed = 0
         audioLevel = 0
         startTimer()
@@ -70,11 +73,14 @@ final class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
 
     func stop() -> URL? {
         stopTimer()
-        elapsed = recorder?.currentTime ?? elapsed
+        if let recordingStartDate {
+            elapsed = Date().timeIntervalSince(recordingStartDate)
+        }
         recorder?.stop()
         isRecording = false
         let url = currentFileURL
         currentFileURL = nil
+        recordingStartDate = nil
         recorder = nil
         audioLevel = 0
         deactivateSession()
@@ -89,6 +95,7 @@ final class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
             try? FileManager.default.removeItem(at: currentFileURL)
         }
         currentFileURL = nil
+        recordingStartDate = nil
         recorder = nil
         elapsed = 0
         audioLevel = 0
@@ -122,7 +129,9 @@ final class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
         timerTask = Task { @MainActor [weak self] in
             while !Task.isCancelled {
                 guard let self, let recorder = self.recorder else { return }
-                self.elapsed = recorder.currentTime
+                if let recordingStartDate = self.recordingStartDate {
+                    self.elapsed = Date().timeIntervalSince(recordingStartDate)
+                }
                 recorder.updateMeters()
                 let power = recorder.averagePower(forChannel: 0)
                 self.audioLevel = max(0, min(1, (power + 50) / 50))
