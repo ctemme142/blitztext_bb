@@ -164,6 +164,10 @@ final class AppModel: ObservableObject {
         statusText = "Text kopiert."
     }
 
+    func markResultEdited() {
+        statusText = "Bearbeitet. Erneut kopieren."
+    }
+
     func finishSession() {
         resultText = ""
         rawText = ""

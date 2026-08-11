@@ -129,88 +129,99 @@ struct MainView: View {
 
     private var resultView: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Label("Fertig", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                    .font(.headline)
-                Spacer()
-                Text("Text wurde kopiert")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            if isEditingResult {
+                HStack {
+                    Label("Text bearbeiten", systemImage: "pencil")
+                        .font(.headline)
+                    Spacer()
+                    Button("Übernehmen") {
+                        endResultEditing()
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
 
-            Group {
-                if isEditingResult {
-                    TextEditor(text: Binding(
-                        get: { model.resultText },
-                        set: { model.resultText = $0 }
-                    ))
-                    .focused($isResultEditorFocused)
-                } else {
+                TextEditor(text: Binding(
+                    get: { model.resultText },
+                    set: { value in
+                        model.resultText = value
+                        model.markResultEdited()
+                    }
+                ))
+                .font(.body)
+                .focused($isResultEditorFocused)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(10)
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(.quaternary))
+            } else {
+                HStack {
+                    Label("Ergebnis", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .font(.headline)
+                    Spacer()
+                    Text(model.statusText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.trailing)
+                }
+
+                Group {
                     ScrollView {
                         Text(model.resultText)
                             .frame(maxWidth: .infinity, alignment: .topLeading)
                             .textSelection(.enabled)
                     }
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(10)
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(.quaternary))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(10)
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(.quaternary))
 
-            if model.showingOriginal {
-                ScrollView {
-                    Text(model.rawText)
-                        .font(.subheadline)
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                if model.showingOriginal {
+                    ScrollView {
+                        Text(model.rawText)
+                            .font(.subheadline)
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .frame(maxHeight: 100)
+                    .padding(8)
+                    .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
                 }
-                .frame(maxHeight: 100)
-                .padding(8)
-                .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
-            }
 
-            HStack {
-                Button {
-                    model.copyResult()
-                } label: {
-                    Label("Kopieren", systemImage: "doc.on.doc")
-                }
-                    .buttonStyle(.borderedProminent)
-                Button {
-                    if isEditingResult {
-                        endResultEditing()
-                    } else {
+                HStack {
+                    Button {
+                        model.copyResult()
+                    } label: {
+                        Label("Kopieren", systemImage: "doc.on.doc")
+                    }
+                        .buttonStyle(.borderedProminent)
+                    Button {
                         beginResultEditing()
-                    }
-                } label: {
-                    Label(
-                        isEditingResult ? "Übernehmen" : "Bearbeiten",
-                        systemImage: isEditingResult ? "checkmark" : "pencil"
-                    )
-                }
-                .buttonStyle(.bordered)
-                if model.selectedWorkflow != .transcription {
-                    Button(model.showingOriginal ? "Original ausblenden" : "Original anzeigen") {
-                        model.showingOriginal.toggle()
+                    } label: {
+                        Label("Bearbeiten", systemImage: "pencil")
                     }
                     .buttonStyle(.bordered)
+                    if model.selectedWorkflow != .transcription {
+                        Button(model.showingOriginal ? "Original ausblenden" : "Original anzeigen") {
+                            model.showingOriginal.toggle()
+                        }
+                        .buttonStyle(.bordered)
+                    }
                 }
-            }
 
-            HStack {
-                Button {
-                    endResultEditing()
-                    model.startRecording()
-                } label: {
-                    Label("Neue Aufnahme", systemImage: "mic.fill")
-                }
+                HStack {
+                    Button {
+                        model.startRecording()
+                    } label: {
+                        Label("Neue Aufnahme", systemImage: "mic.fill")
+                    }
+                        .buttonStyle(.bordered)
+                    Button {
+                        model.finishSession()
+                    } label: {
+                        Label("Zur Startseite", systemImage: "xmark")
+                    }
                     .buttonStyle(.bordered)
-                Button("Fertig") {
-                    endResultEditing()
-                    model.finishSession()
                 }
-                    .buttonStyle(.bordered)
             }
         }
     }
