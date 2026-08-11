@@ -128,7 +128,7 @@ final class AppModel: ObservableObject {
     }
 
     func processPendingAudio() {
-        guard let audioURL = pendingAudioURL, !isBusy else { return }
+        guard let audioURL = pendingAudioURL else { return }
         state = .processing("Wird transkribiert ...")
         statusText = "Wird transkribiert ..."
         processingTask?.cancel()
