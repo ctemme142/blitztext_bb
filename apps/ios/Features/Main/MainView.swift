@@ -216,10 +216,8 @@ struct MainView: View {
                         Label("Neue Aufnahme", systemImage: "mic.fill")
                     }
                         .buttonStyle(.bordered)
-                    Button {
-                        model.finishSession()
-                    } label: {
-                        Label("Ergebnis schließen", systemImage: "xmark")
+                    ShareLink(item: model.resultText) {
+                        Label("Teilen ...", systemImage: "square.and.arrow.up")
                     }
                     .buttonStyle(.bordered)
                 }
