@@ -213,7 +213,7 @@ struct MainView: View {
                     Button {
                         model.startRecording()
                     } label: {
-                        Label("Neue Aufnahme", systemImage: "mic.fill")
+                        Label("Aufnehmen", systemImage: "mic.fill")
                     }
                         .buttonStyle(.bordered)
                     ShareLink(item: model.resultText) {
