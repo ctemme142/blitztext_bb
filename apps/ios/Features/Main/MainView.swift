@@ -6,12 +6,16 @@ struct MainView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if case .recording = model.state {
+                switch model.state {
+                case .recording:
                     RecordingView(model: model, recorder: model.recorder)
                         .padding(.horizontal, 20)
-                } else {
+                case .finished:
+                    resultView
+                        .padding(16)
+                default:
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 18) {
+                        VStack(alignment: .leading, spacing: 12) {
                             header
                             workflowPicker
 
@@ -23,16 +27,17 @@ struct MainView: View {
                             case .processing(let text):
                                 processingView(text)
                             case .finished:
-                                resultView
+                                EmptyView()
                             case .failed(let message):
                                 failureView(message)
                             }
                         }
-                        .padding(20)
+                        .padding(16)
                     }
                 }
             }
             .navigationTitle("Blitztext")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -115,43 +120,58 @@ struct MainView: View {
     }
 
     private var resultView: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Label("Fertig", systemImage: "checkmark.circle.fill")
-                .foregroundStyle(.green)
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label("Fertig", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                    .font(.headline)
+                Spacer()
+                Text("Text wurde kopiert")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             TextEditor(text: Binding(
                 get: { model.resultText },
                 set: { model.resultText = $0 }
             ))
-            .frame(minHeight: 180)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(8)
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(.quaternary))
 
             if model.showingOriginal {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Original")
-                        .font(.headline)
+                ScrollView {
                     Text(model.rawText)
-                        .font(.body)
+                        .font(.subheadline)
                         .textSelection(.enabled)
-                        .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 10))
                 }
+                .frame(maxHeight: 100)
+                .padding(8)
+                .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
             }
 
             HStack {
-                Button("Kopieren") { model.copyResult() }
+                Button {
+                    model.copyResult()
+                } label: {
+                    Label("Kopieren", systemImage: "doc.on.doc")
+                }
                     .buttonStyle(.borderedProminent)
-                Button(model.showingOriginal ? "Original ausblenden" : "Original anzeigen") {
-                    model.showingOriginal.toggle()
+                if model.selectedWorkflow != .transcription {
+                    Button(model.showingOriginal ? "Original ausblenden" : "Original anzeigen") {
+                        model.showingOriginal.toggle()
+                    }
+                    .buttonStyle(.bordered)
                 }
-                .buttonStyle(.bordered)
             }
 
             HStack {
-                Button("Neue Aufnahme") { model.startRecording() }
+                Button {
+                    model.startRecording()
+                } label: {
+                    Label("Neue Aufnahme", systemImage: "mic.fill")
+                }
                     .buttonStyle(.bordered)
                 Button("Fertig") { model.finishSession() }
                     .buttonStyle(.bordered)
