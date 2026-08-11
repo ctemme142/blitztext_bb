@@ -106,7 +106,7 @@ final class AppModel: ObservableObject {
         guard state == .recording else { return }
         pendingAudioURL = recorder.stop()
         guard pendingAudioURL != nil else {
-            state = .failed("iOS hat keine Audiodatei erzeugt. Bitte prüfen Sie in den iPhone-Einstellungen unter Datenschutz & Sicherheit > Mikrofon, ob Blitztext Zugriff hat.")
+            state = .failed("iOS hat keine Audiodatei erzeugt. Bitte prüfen Sie in den iPhone-Einstellungen unter Datenschutz & Sicherheit > Mikrofon, ob Blitztext Zugriff hat. Diagnose: (recorder.diagnostic)")
             statusText = "Keine Audiodatei vorhanden."
             return
         }

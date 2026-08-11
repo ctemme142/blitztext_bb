@@ -6,6 +6,7 @@ final class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
     @Published private(set) var isRecording = false
     @Published private(set) var elapsed: TimeInterval = 0
     @Published private(set) var audioLevel: Float = 0
+    private(set) var diagnostic = "Noch keine Aufnahme gestartet."
 
     var onTimeLimitReached: (() -> Void)?
     var onInterruption: (() -> Void)?
@@ -35,6 +36,7 @@ final class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
 
     func start() async throws {
         let permission = await requestPermission()
+        diagnostic = "Mikrofonberechtigung: \(permission ? "erlaubt" : "verweigert")"
         guard permission else {
             throw AudioRecorderError.microphonePermissionDenied
         }
@@ -42,6 +44,8 @@ final class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
         let session = AVAudioSession.sharedInstance()
         try session.setCategory(.record, mode: .measurement, options: [.duckOthers])
         try session.setActive(true, options: .notifyOthersOnDeactivation)
+        let inputs = session.currentRoute.inputs.map(\.portName).joined(separator: ", ")
+        diagnostic = "Audioeingang: \(inputs.isEmpty ? "kein Eingang gemeldet" : inputs)"
 
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("blitztext-\(UUID().uuidString).m4a")
@@ -66,6 +70,7 @@ final class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
 
         isRecording = true
         recordingStartDate = Date()
+        diagnostic += "; Rekorder gestartet; Datei: (url.lastPathComponent)"
         elapsed = 0
         audioLevel = 0
         startTimer()
@@ -78,13 +83,36 @@ final class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
         }
         recorder?.stop()
         isRecording = false
-        let url = currentFileURL
+        let url = currentFileURL ?? latestRecordingURL()
+        if let url {
+            let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? NSNumber)?.intValue ?? 0
+            diagnostic += "; Datei nach Stop: \(size) Bytes"
+        } else {
+            diagnostic += "; keine Audiodatei nach Stop gefunden"
+        }
         currentFileURL = nil
         recordingStartDate = nil
         recorder = nil
         audioLevel = 0
         deactivateSession()
         return url
+    }
+
+    private func latestRecordingURL() -> URL? {
+        let directory = FileManager.default.temporaryDirectory
+        let files = (try? FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey],
+            options: [.skipsHiddenFiles]
+        )) ?? []
+        return files
+            .filter { $0.lastPathComponent.hasPrefix("blitztext-") && $0.pathExtension == "m4a" }
+            .sorted { lhs, rhs in
+                let left = (try? lhs.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+                let right = (try? rhs.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+                return left > right
+            }
+            .first
     }
 
     func cancel() {

@@ -50,18 +50,19 @@ struct MainView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 3) {
             Text("Sprich los.")
-                .font(.largeTitle.bold())
+                .font(.title2.bold())
             Text(model.statusText)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
     }
 
     private var workflowPicker: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 5) {
             Text("Workflow")
-                .font(.headline)
+                .font(.subheadline.weight(.semibold))
             Picker("Workflow", selection: $model.selectedWorkflow) {
                 ForEach(WorkflowType.allCases) { workflow in
                     Label(workflow.displayName, systemImage: workflow.systemImage)
@@ -71,20 +72,20 @@ struct MainView: View {
             .pickerStyle(.menu)
             .disabled(model.isBusy)
             Text(model.selectedWorkflow.subtitle)
-                .font(.subheadline)
+                .font(.caption)
                 .foregroundStyle(.secondary)
         }
-        .padding(16)
+        .padding(10)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
     }
 
     private var idleView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 10) {
             Image(systemName: model.selectedWorkflow.systemImage)
-                .font(.system(size: 42))
+                .font(.system(size: 30))
                 .foregroundStyle(.blue)
             Text("Bereit für eine neue Aufnahme")
-                .font(.headline)
+                .font(.subheadline.weight(.semibold))
             Button {
                 model.startRecording()
             } label: {
@@ -95,7 +96,7 @@ struct MainView: View {
             .controlSize(.large)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
+        .padding(.vertical, 12)
     }
 
     private func processingView(_ text: String) -> some View {
