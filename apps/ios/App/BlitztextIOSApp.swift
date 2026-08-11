@@ -9,13 +9,8 @@ struct BlitztextIOSApp: App {
         WindowGroup {
             RootView(model: model)
                 .preferredColorScheme(nil)
-                .onAppear {
-                    model.consumeShortcutLaunch()
-                }
                 .onChange(of: scenePhase) { _, newPhase in
-                    if newPhase == .active {
-                        model.consumeShortcutLaunch()
-                    } else if newPhase == .background {
+                    if newPhase == .background {
                         model.appDidEnterBackground()
                     }
                 }

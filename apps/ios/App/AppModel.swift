@@ -5,7 +5,6 @@ import SwiftUI
 final class AppModel: ObservableObject {
     static let shared = AppModel()
 
-    nonisolated static let shortcutLaunchKey = "blitztext.startFromShortcut"
     private static let setupCompleteKey = "blitztext.setupComplete"
     private static let lastWorkflowKey = "blitztext.lastWorkflow"
 
@@ -174,13 +173,6 @@ final class AppModel: ObservableObject {
         showingOriginal = false
         state = .idle
         statusText = "Bereit für die nächste Aufnahme."
-    }
-
-    func consumeShortcutLaunch() {
-        guard UserDefaults.standard.bool(forKey: Self.shortcutLaunchKey) else { return }
-        UserDefaults.standard.set(false, forKey: Self.shortcutLaunchKey)
-        guard isSetupComplete else { return }
-        startRecording()
     }
 
     func appDidEnterBackground() {

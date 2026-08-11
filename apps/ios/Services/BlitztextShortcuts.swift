@@ -3,10 +3,12 @@ import AppIntents
 struct StartBlitztextIntent: AppIntent {
     static let title: LocalizedStringResource = "Blitztext-Aufnahme starten"
     static let description = IntentDescription("Öffnet Blitztext und startet eine Aufnahme mit dem zuletzt verwendeten Workflow.")
-    static var openAppWhenRun: Bool { true }
+    static let supportedModes: IntentModes = .foreground
 
     func perform() async throws -> some IntentResult {
-        UserDefaults.standard.set(true, forKey: AppModel.shortcutLaunchKey)
+        await MainActor.run {
+            AppModel.shared.startRecording()
+        }
         return .result()
     }
 }
