@@ -2,6 +2,8 @@ import SwiftUI
 
 struct MainView: View {
     @ObservedObject var model: AppModel
+    @State private var isEditingResult = false
+    @FocusState private var isResultEditorFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -46,6 +48,12 @@ struct MainView: View {
                         Image(systemName: "gearshape")
                     }
                     .accessibilityLabel("Einstellungen")
+                }
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Bearbeitung beenden") {
+                        endResultEditing()
+                    }
                 }
             }
             .sheet(isPresented: $model.showingSettings) {
@@ -131,13 +139,24 @@ struct MainView: View {
                     .foregroundStyle(.secondary)
             }
 
-            TextEditor(text: Binding(
-                get: { model.resultText },
-                set: { model.resultText = $0 }
-            ))
+            Group {
+                if isEditingResult {
+                    TextEditor(text: Binding(
+                        get: { model.resultText },
+                        set: { model.resultText = $0 }
+                    ))
+                    .focused($isResultEditorFocused)
+                } else {
+                    ScrollView {
+                        Text(model.resultText)
+                            .frame(maxWidth: .infinity, alignment: .topLeading)
+                            .textSelection(.enabled)
+                    }
+                }
+            }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(8)
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(.quaternary))
+            .padding(10)
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(.quaternary))
 
             if model.showingOriginal {
                 ScrollView {
@@ -158,6 +177,19 @@ struct MainView: View {
                     Label("Kopieren", systemImage: "doc.on.doc")
                 }
                     .buttonStyle(.borderedProminent)
+                Button {
+                    if isEditingResult {
+                        endResultEditing()
+                    } else {
+                        beginResultEditing()
+                    }
+                } label: {
+                    Label(
+                        isEditingResult ? "Übernehmen" : "Bearbeiten",
+                        systemImage: isEditingResult ? "checkmark" : "pencil"
+                    )
+                }
+                .buttonStyle(.bordered)
                 if model.selectedWorkflow != .transcription {
                     Button(model.showingOriginal ? "Original ausblenden" : "Original anzeigen") {
                         model.showingOriginal.toggle()
@@ -168,15 +200,32 @@ struct MainView: View {
 
             HStack {
                 Button {
+                    endResultEditing()
                     model.startRecording()
                 } label: {
                     Label("Neue Aufnahme", systemImage: "mic.fill")
                 }
                     .buttonStyle(.bordered)
-                Button("Fertig") { model.finishSession() }
+                Button("Fertig") {
+                    endResultEditing()
+                    model.finishSession()
+                }
                     .buttonStyle(.bordered)
             }
         }
+    }
+
+    private func beginResultEditing() {
+        isEditingResult = true
+        Task { @MainActor in
+            await Task.yield()
+            isResultEditorFocused = true
+        }
+    }
+
+    private func endResultEditing() {
+        isResultEditorFocused = false
+        isEditingResult = false
     }
 
     private func failureView(_ message: String) -> some View {
