@@ -40,6 +40,7 @@ struct MainView: View {
             }
             .navigationTitle("Blitztext")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar(isEditingResult ? .hidden : .visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -218,12 +219,13 @@ struct MainView: View {
                     Button {
                         model.finishSession()
                     } label: {
-                        Label("Zur Startseite", systemImage: "xmark")
+                        Label("Ergebnis schließen", systemImage: "xmark")
                     }
                     .buttonStyle(.bordered)
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private func beginResultEditing() {
